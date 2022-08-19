@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="hours">Hours</string>
+    <string name="days">Days</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">F1</string>
+
+</resources>

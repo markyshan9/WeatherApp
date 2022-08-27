@@ -17,6 +17,7 @@
         android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         android:ems="10"
         android:hint="Enter city name"
+        android:imeOptions="actionDone"
         android:inputType="textPersonName|textNoSuggestions"
         android:maxLines="1"
         android:textColor="@color/white"

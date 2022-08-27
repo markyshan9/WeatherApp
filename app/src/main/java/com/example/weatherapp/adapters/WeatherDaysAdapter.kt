@@ -18,7 +18,7 @@ class WeatherDaysAdapter(val listener: Listener) : ListAdapter<WeatherModel, Wea
         fun bind(item: WeatherModel, listener: Listener) = with(binding){
             tvDate.text = item.time
             tvCondition.text = item.condition
-            tvTemp.text = item.maxTemp + "/" + item.minTemp
+            (item.maxTemp + "°C / " + item.minTemp + "°C").also { tvTemp.text = it }
             Picasso.get().load("https:" + item.imageUrlCondition).into(im)
 
             itemView.setOnClickListener {

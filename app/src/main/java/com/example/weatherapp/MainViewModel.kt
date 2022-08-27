@@ -15,10 +15,6 @@ class MainViewModel : ViewModel() {
 
     val liveDataListHour = MutableLiveData<List<WeatherModel>>()
 
-    val cordLat = MutableLiveData<String>()
-
-    val cordLong = MutableLiveData<String>()
-
 
 
 }

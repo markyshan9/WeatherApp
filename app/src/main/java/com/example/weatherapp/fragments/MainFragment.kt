@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +26,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.tabs.TabLayoutMediator
 import com.squareup.picasso.Picasso
+import okhttp3.internal.cache.DiskLruCache
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -90,6 +93,7 @@ class MainFragment : Fragment() {
         }
         bSearch.setOnClickListener {
             searchCity()
+            binding.etSearch.text = null
         }
     }
 
@@ -106,12 +110,12 @@ class MainFragment : Fragment() {
             tvData.text = it.time
             tvCondition.text = it.condition
             tvCityName.text = it.cityName
-            tvCurrentTemp.text = it.currentTemp
+            tvCurrentTemp.text = it.currentTemp + "°C"
             Picasso.get().load("https:" + it.imageUrlCondition).into(imWeather)
             if (it.maxTemp == it.minTemp) {
                 tvMaxMin.text = ""
             } else {
-                (it.maxTemp + " / " + it.minTemp).also { tvMaxMin.text = it }
+                (it.maxTemp + "°C / " + it.minTemp + "°C").also { tvMaxMin.text = it }
             }
         }
     }
@@ -274,6 +278,16 @@ class MainFragment : Fragment() {
         val cityName: String = etSearch.text.toString()
         requestWeatherData(cityName = cityName, true)
 
+    }
+
+    fun EditText.onDone(callback : () -> Unit) {
+        setOnEditorActionListener { _, i, _ ->
+            if(imeActionId ==EditorInfo.IME_ACTION_DONE) {
+                callback.invoke()
+                return@setOnEditorActionListener true
+            }
+            false
+        }
     }
 
 }

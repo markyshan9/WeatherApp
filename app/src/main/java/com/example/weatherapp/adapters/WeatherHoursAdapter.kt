@@ -18,7 +18,7 @@ class WeatherHoursAdapter() : ListAdapter<WeatherModel, WeatherHoursAdapter.Hold
         fun bind(item: WeatherModel) = with(binding){
             tvDate.text = item.time
             tvCondition.text = item.condition
-            tvTemp.text = item.currentTemp
+            (item.currentTemp + "°C").also { tvTemp.text = it }
             Picasso.get().load("https:" + item.imageUrlCondition).into(im)
 
         }

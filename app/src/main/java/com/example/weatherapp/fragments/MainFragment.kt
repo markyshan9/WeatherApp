@@ -236,8 +236,8 @@ class MainFragment : Fragment() {
                 imageUrlCondition = day.getJSONObject("day").getJSONObject("condition")
                     .getString("icon"),
                 currentTemp = "",
-                maxTemp = day.getJSONObject("day").getString("maxtemp_c"),
-                minTemp = day.getJSONObject("day").getString("mintemp_c"),
+                maxTemp = day.getJSONObject("day").getString("maxtemp_c").toFloat().toInt().toString(),
+                minTemp = day.getJSONObject("day").getString("mintemp_c").toFloat().toInt().toString(),
                 hours = day.getJSONArray("hour").toString()
 
 

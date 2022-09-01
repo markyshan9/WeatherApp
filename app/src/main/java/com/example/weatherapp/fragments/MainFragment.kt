@@ -2,16 +2,15 @@ package com.example.weatherapp.fragments
 
 import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
@@ -24,14 +23,15 @@ import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
 import com.squareup.picasso.Picasso
-import okhttp3.internal.cache.DiskLruCache
 import org.json.JSONArray
 import org.json.JSONObject
 
 
-const val API_KEY = "bee4102a660b426780e95320221908"
+const val API_KEY = "e9d5b07b591240cfa2b132641220109"
 
 class MainFragment : Fragment() {
     private val fList: List<Fragment> = listOf(
@@ -46,14 +46,6 @@ class MainFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var pLauncher: ActivityResultLauncher<String>
     private lateinit var binding: FragmentMainBinding
-    private var latitude = ""
-    private var longitude = ""
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        fusedLocationClient =
-            LocationServices.getFusedLocationProviderClient(activity as AppCompatActivity)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,22 +57,23 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = with(binding) {
         super.onViewCreated(view, savedInstanceState)
-        val task = fusedLocationClient.lastLocation
         checkPermission()
-        task.addOnSuccessListener {
-            val ctx = context
-            if (it != null) {
-                latitude = it.latitude.toString()
-                longitude = it.longitude.toString()
-                if (ctx != null) {
-                    requestWeatherData(latitude, longitude, false, ctx)
-                }
-            }
-        }
         init()
+        getLocation(requireContext(), false)
         setWeatherCurrent()
+    }
+
+    private fun init() = with(binding) {
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(requireContext())
+        val adapter = VpAdapter(activity as FragmentActivity, fList)
+        vp.adapter = adapter
+        TabLayoutMediator(tabLayout, vp) { tab, pos ->
+            tab.text = tList[pos]
+        }.attach()
         ibSync.setOnClickListener {
-            requestWeatherData(latitude, longitude, true, requireContext().applicationContext)
+            tabLayout.selectTab(tabLayout.getTabAt(0))
+            getLocation(requireContext(), true)
         }
         ibSearch.setOnClickListener {
             if (etSearch.visibility == View.GONE) {
@@ -97,12 +90,22 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun init() = with(binding) {
-        val adapter = VpAdapter(activity as FragmentActivity, fList)
-        vp.adapter = adapter
-        TabLayoutMediator(tabLayout, vp) { tab, pos ->
-            tab.text = tList[pos]
-        }.attach()
+    private fun getLocation(context: Context, reset: Boolean) {
+        val ct = CancellationTokenSource()
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
+            .addOnCompleteListener {
+                requestWeatherData("${it.result.latitude},${it.result.longitude}", reset, context)
+            }
     }
 
     private fun setWeatherCurrent() = with(binding) {
@@ -110,12 +113,12 @@ class MainFragment : Fragment() {
             tvData.text = it.time
             tvCondition.text = it.condition
             tvCityName.text = it.cityName
-            tvCurrentTemp.text = it.currentTemp + "°C"
+            tvCurrentTemp.text = "${it.currentTemp}°C"
             Picasso.get().load("https:" + it.imageUrlCondition).into(imWeather)
             if (it.maxTemp == it.minTemp) {
                 tvMaxMin.text = ""
             } else {
-                (it.maxTemp + "°C / " + it.minTemp + "°C").also { tvMaxMin.text = it }
+                ("${it.maxTemp}°C / ${it.minTemp}°C").also { tvMaxMin.text = it }
             }
         }
     }
@@ -134,7 +137,7 @@ class MainFragment : Fragment() {
     }
 
 
-    private fun requestWeatherData(cityName: String, reset: Boolean) = with(binding) {
+    private fun requestWeatherData(cityName: String, reset: Boolean, context: Context) = with(binding) {
         val url = "https://api.weatherapi.com/v1/forecast.json?" +
                 "key=" +
                 API_KEY +
@@ -158,35 +161,7 @@ class MainFragment : Fragment() {
         queue.add(request)
     }
 
-    private fun requestWeatherData(
-        latitude: String,
-        longitude: String,
-        reset: Boolean,
-        context: Context
-    ) = with(binding) {
-        val url = "https://api.weatherapi.com/v1/forecast.json?" +
-                "key=" +
-                API_KEY +
-                "&q=" +
-                latitude + "," +
-                longitude +
-                "&days=10&aqi=no&alerts=no"
-        val queue = Volley.newRequestQueue(context)
-        val request = StringRequest(
-            Request.Method.GET,
-            url,
-            { result ->
-                parseWeatherData(result, reset)
-                etSearch.visibility = View.GONE
-                bSearch.visibility = View.GONE
-            },
-            { error ->
-                Toast.makeText(context, "Please enter a valid city name", Toast.LENGTH_SHORT).show()
-            }
-        )
 
-        queue.add(request)
-    }
 
 
     private fun parseWeatherData(result: String, reset: Boolean) {
@@ -205,7 +180,7 @@ class MainFragment : Fragment() {
 
 
     private fun parseCurrentData(mainObject: JSONObject, weatherItem: WeatherModel): WeatherModel {
-        val currentWeather = WeatherModel(
+        return WeatherModel(
             cityName = mainObject.getJSONObject("location").getString("name"),
             time = mainObject.getJSONObject("current").getString("last_updated"),
             condition = mainObject.getJSONObject("current").getJSONObject("condition")
@@ -217,7 +192,6 @@ class MainFragment : Fragment() {
             weatherItem.minTemp,
             weatherItem.hours
         )
-        return currentWeather
     }
 
     private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
@@ -276,18 +250,9 @@ class MainFragment : Fragment() {
 
     private fun searchCity() = with(binding) {
         val cityName: String = etSearch.text.toString()
-        requestWeatherData(cityName = cityName, true)
+        requestWeatherData(cityName = cityName, true, requireContext())
 
     }
 
-    fun EditText.onDone(callback : () -> Unit) {
-        setOnEditorActionListener { _, i, _ ->
-            if(imeActionId ==EditorInfo.IME_ACTION_DONE) {
-                callback.invoke()
-                return@setOnEditorActionListener true
-            }
-            false
-        }
-    }
 
 }

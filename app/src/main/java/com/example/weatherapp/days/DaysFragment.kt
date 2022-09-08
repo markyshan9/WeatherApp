@@ -1,22 +1,16 @@
-package com.example.weatherapp.fragments
+package com.example.weatherapp.days
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.MainViewModel
-import com.example.weatherapp.adapters.WeatherDaysAdapter
-import com.example.weatherapp.adapters.WeatherHoursAdapter
 import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentDaysBinding
-import org.json.JSONArray
-import org.json.JSONObject
 
 class DaysFragment : Fragment(), WeatherDaysAdapter.Listener {
     private lateinit var binding: FragmentDaysBinding
@@ -55,34 +49,6 @@ class DaysFragment : Fragment(), WeatherDaysAdapter.Listener {
 
     override fun onClick(dayWeather: WeatherModel) {
         Toast.makeText(context, dayWeather.time, Toast.LENGTH_SHORT).show()
-        val list = ArrayList<WeatherModel>()
-        val hoursArray = JSONArray(dayWeather.hours)
-        for (i in 0 until hoursArray.length()) {
-            val hour = hoursArray[i] as JSONObject
-            val itemHour = WeatherModel(
-                cityName = dayWeather.cityName,
-                time = hour.getString("time"),
-                condition = hour.getJSONObject("condition").getString("text"),
-                imageUrlCondition = hour.getJSONObject("condition").getString("icon"),
-                currentTemp = hour.getString("temp_c"),
-                maxTemp = "",
-                minTemp = "",
-                hours = ""
-            )
-            list.add(itemHour)
-        }
-            val itemCurrent = WeatherModel(
-                cityName = dayWeather.cityName,
-                time = dayWeather.time,
-                condition = dayWeather.condition,
-                imageUrlCondition = dayWeather.imageUrlCondition,
-                currentTemp = dayWeather.maxTemp + "/" + dayWeather.minTemp,
-                maxTemp = "",
-                minTemp = "",
-                hours = ""
-            )
-            mainViewModel.liveDataCurrent.value = itemCurrent
-
-        mainViewModel.liveDataListHour.value = list
+        mainViewModel.parseHoursByDay(dayWeather)
     }
 }

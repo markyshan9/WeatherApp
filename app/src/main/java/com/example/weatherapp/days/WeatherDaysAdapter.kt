@@ -1,4 +1,4 @@
-package com.example.weatherapp.adapters
+package com.example.weatherapp.days
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,20 +7,26 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
+import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.ListItemBinding
 import com.squareup.picasso.Picasso
 
-class WeatherHoursAdapter() : ListAdapter<WeatherModel, WeatherHoursAdapter.Holder>(Comparator()) {
+class WeatherDaysAdapter(val listener: Listener) : ListAdapter<WeatherModel, WeatherDaysAdapter.Holder>(
+    Comparator()
+) {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val binding = ListItemBinding.bind(view)
 
-        fun bind(item: WeatherModel) = with(binding){
+        fun bind(item: WeatherModel, listener: Listener) = with(binding){
             tvDate.text = item.time
             tvCondition.text = item.condition
-            (item.currentTemp + "°C").also { tvTemp.text = it }
+            (item.maxTemp + "°C / " + item.minTemp + "°C").also { tvTemp.text = it }
             Picasso.get().load("https:" + item.imageUrlCondition).into(im)
 
+            itemView.setOnClickListener {
+                listener.onClick(item)
+            }
         }
     }
 
@@ -42,8 +48,12 @@ class WeatherHoursAdapter() : ListAdapter<WeatherModel, WeatherHoursAdapter.Hold
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), listener)
 
+    }
+
+    interface Listener {
+        fun onClick(dayWeather: WeatherModel)
     }
 
 

@@ -1,12 +1,9 @@
-package com.example.weatherapp
+package com.example.weatherapp.adapters
 
-data class DayItem(
+data class HourWeather(
     val cityName: String,
     val time: String,
     val condition: String,
     val imageUrlCondition: String,
     val currentTemp: String,
-    val maxTemp: String,
-    val minTemp: String,
-    val hours: String
 )

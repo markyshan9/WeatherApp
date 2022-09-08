@@ -1,4 +1,4 @@
-package com.example.weatherapp.fragments
+package com.example.weatherapp.current
 
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity

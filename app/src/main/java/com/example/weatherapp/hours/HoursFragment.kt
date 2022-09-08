@@ -1,4 +1,4 @@
-package com.example.weatherapp.fragments
+package com.example.weatherapp.hours
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,14 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.MainViewModel
-import com.example.weatherapp.adapters.WeatherHoursAdapter
-import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentHoursBinding
-import org.json.JSONArray
-import org.json.JSONObject
 
 class HoursFragment : Fragment() {
     private lateinit var binding: FragmentHoursBinding
@@ -44,7 +39,6 @@ class HoursFragment : Fragment() {
     }
 
     companion object {
-
         @JvmStatic
         fun newInstance() = HoursFragment()
     }

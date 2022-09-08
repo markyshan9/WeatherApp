@@ -3,6 +3,7 @@ package com.example.weatherapp.fragments
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +19,7 @@ import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.weatherapp.MainViewModel
-import com.example.weatherapp.adapters.VpAdapter
+import com.example.weatherapp.adapters.ViewPagerAdapter
 import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -66,7 +67,7 @@ class MainFragment : Fragment() {
     private fun init() = with(binding) {
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(requireContext())
-        val adapter = VpAdapter(activity as FragmentActivity, fList)
+        val adapter = ViewPagerAdapter(activity as FragmentActivity, fList)
         vp.adapter = adapter
         TabLayoutMediator(tabLayout, vp) { tab, pos ->
             tab.text = tList[pos]
@@ -90,22 +91,35 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun isLocationEnabled() : Boolean{
+        val lm = activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
     private fun getLocation(context: Context, reset: Boolean) {
-        val ct = CancellationTokenSource()
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if(!isLocationEnabled()) {
+            Toast.makeText(requireContext(), "Location disabled!", Toast.LENGTH_SHORT).show()
             return
         }
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
-            .addOnCompleteListener {
-                requestWeatherData("${it.result.latitude},${it.result.longitude}", reset, context)
+            val ct = CancellationTokenSource()
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
             }
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
+                .addOnCompleteListener {
+                    requestWeatherData(
+                        "${it.result.latitude},${it.result.longitude}",
+                        reset,
+                        context
+                    )
+                }
     }
 
     private fun setWeatherCurrent() = with(binding) {
@@ -123,20 +137,28 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun permissionListener() {
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
 
-        }
-    }
 
     private fun checkPermission() {
         if (!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            permissionListener()
             pLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
-
+    // TODO
+    /*
+    * Ты здесь используешь MVVM не совсем правильно.
+    * 1. Твой класс фрагмент слишком "умный". Он делает очень много разных вещей, из-за этого есть риск того что класс разрастется
+    * и его будет тяжело пождержиать. Читай принципы SOLID - самый главный для начала будет принцип S - он у тебя и нарушается.
+    * 2. Чтобы избежать разрастания фрагмента (и для других целей, но эта сейчас основная), придумали разные паттерны типа MVP, MVVM, MVI, MVC и тд
+    * Здесь ты используешь MVVM. ViewModel в MVVM нужен для того чтобы твоя  View (фрагмент) не делала и не знала слишком много.
+    * ViewModel берет на себя "логику", т.к. запросы в сеть и прочее.
+    * Задача View (фрагмента) здесь просто подписаться на MutableLiveData<List<WeatherModel>>() из ViewModel, слушать обновления и отрисовывать их.
+    * И все. Больше не париться ни о чем. Всю логику у в твоем случае делает VM, в View просто слушает данные и рисует их.
+    * Получается разделение: View - рисует, VM - думает, M - содержит данные. Вот и все буквы MVVM.
+    *
+    * Получается вот это, парсинг и прочие штуки нужно вынести
+    * */
     private fun requestWeatherData(cityName: String, reset: Boolean, context: Context) = with(binding) {
         val url = "https://api.weatherapi.com/v1/forecast.json?" +
                 "key=" +
@@ -233,7 +255,8 @@ class MainFragment : Fragment() {
                 condition = hour.getJSONObject("condition").getString("text"),
                 imageUrlCondition = hour.getJSONObject("condition").getString("icon"),
                 currentTemp = hour.getString("temp_c"),
-                maxTemp = "",
+                maxTemp = "", //todo судя по всему у тебя должно быть две модели HourWeather и DayWeather.
+                // Об этом говорит то что у тебя некоторые  поля пустые и не нужные. Зачем в модели для часа поле "hours"? ну и тд.
                 minTemp = "",
                 hours = ""
             )

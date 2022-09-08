@@ -1,0 +1,114 @@
+Index: README.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/README.md b/README.md
+--- a/README.md	(revision 75749e2c9fcfd5b6ea8f594caffc5a249a57014e)
++++ b/README.md	(date 1662621940425)
+@@ -1,3 +1,12 @@
+ # WeatherApp
+ If the application does not work, the free period of the API key from JSON weather keys has most likely ended.
+ Go to https://www.weatherapi.com/ to get an API Key or contact me to enable this key. Thanks in advance
++
++//TODO readme это считай лицо твоего проекта. Проект с таким readme ты клиенту не поставишь и с таким неудобно работать.
++Что нужно сделать: добавить четкую инструкцию по сборке. Обычно ответственность за API ключ лежит на том, кто собирает.
++То есть в инструкции должно быть где взять ключ и куда его положить чтобы успешно собрать. У тебя ключ лежит прямо в активити,
++что не позолит это реализовать. Нужно переделать хранение ключа так чтобы собирающему не нужно было копаться в коде.
++Смотри https://guides.codepath.com/android/Storing-Secret-Keys-in-Android#hidden-in-buildconfigs 
++секцию про buildconfig, этого должно хватить.
++
++
+Index: app/src/main/java/com/example/weatherapp/adapters/VpAdapter.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/weatherapp/adapters/VpAdapter.kt b/app/src/main/java/com/example/weatherapp/adapters/VpAdapter.kt
+--- a/app/src/main/java/com/example/weatherapp/adapters/VpAdapter.kt	(revision 75749e2c9fcfd5b6ea8f594caffc5a249a57014e)
++++ b/app/src/main/java/com/example/weatherapp/adapters/VpAdapter.kt	(date 1662621940453)
+@@ -4,6 +4,8 @@
+ import androidx.fragment.app.FragmentActivity
+ import androidx.viewpager2.adapter.FragmentStateAdapter
+ 
++
++// TODO из имени абсолютно непонятна цель класса.
+ class VpAdapter(fa: FragmentActivity, private val list: List<Fragment>) : FragmentStateAdapter(fa) {
+     override fun getItemCount(): Int {
+         return list.size
+Index: app/src/main/java/com/example/weatherapp/fragments/MainFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/weatherapp/fragments/MainFragment.kt b/app/src/main/java/com/example/weatherapp/fragments/MainFragment.kt
+--- a/app/src/main/java/com/example/weatherapp/fragments/MainFragment.kt	(revision 75749e2c9fcfd5b6ea8f594caffc5a249a57014e)
++++ b/app/src/main/java/com/example/weatherapp/fragments/MainFragment.kt	(date 1662623288967)
+@@ -125,7 +125,7 @@
+ 
+     private fun permissionListener() {
+         pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+-
++      //todo пустой слушатель?
+         }
+     }
+ 
+@@ -136,7 +136,20 @@
+         }
+     }
+ 
+-
++    // TODO
++    /*
++    * Ты здесь используешь MVVM не совсем правильно.
++    * 1. Твой класс фрагмент слишком "умный". Он делает очень много разных вещей, из-за этого есть риск того что класс разрастется
++    * и его будет тяжело пождержиать. Читай принципы SOLID - самый главный для начала будет принцип S - он у тебя и нарушается.
++    * 2. Чтобы избежать разрастания фрагмента (и для других целей, но эта сейчас основная), придумали разные паттерны типа MVP, MVVM, MVI, MVC и тд
++    * Здесь ты используешь MVVM. ViewModel в MVVM нужен для того чтобы твоя  View (фрагмент) не делала и не знала слишком много.
++    * ViewModel берет на себя "логику", т.к. запросы в сеть и прочее.
++    * Задача View (фрагмента) здесь просто подписаться на MutableLiveData<List<WeatherModel>>() из ViewModel, слушать обновления и отрисовывать их.
++    * И все. Больше не париться ни о чем. Всю логику у в твоем случае делает VM, в View просто слушает данные и рисует их.
++    * Получается разделение: View - рисует, VM - думает, M - содержит данные. Вот и все буквы MVVM.
++    *
++    * Получается вот это, парсинг и прочие штуки нужно вынести
++    * */
+     private fun requestWeatherData(cityName: String, reset: Boolean, context: Context) = with(binding) {
+         val url = "https://api.weatherapi.com/v1/forecast.json?" +
+                 "key=" +
+@@ -233,7 +246,8 @@
+                 condition = hour.getJSONObject("condition").getString("text"),
+                 imageUrlCondition = hour.getJSONObject("condition").getString("icon"),
+                 currentTemp = hour.getString("temp_c"),
+-                maxTemp = "",
++                maxTemp = "", //todo судя по всему у тебя должно быть две модели HourWeather и DayWeather.
++                // Об этом говорит то что у тебя некоторые  поля пустые и не нужные. Зачем в модели для часа поле "hours"? ну и тд.
+                 minTemp = "",
+                 hours = ""
+             )
+Index: app/src/main/java/com/example/weatherapp/MainViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/weatherapp/MainViewModel.kt b/app/src/main/java/com/example/weatherapp/MainViewModel.kt
+--- a/app/src/main/java/com/example/weatherapp/MainViewModel.kt	(revision 75749e2c9fcfd5b6ea8f594caffc5a249a57014e)
++++ b/app/src/main/java/com/example/weatherapp/MainViewModel.kt	(date 1662622408745)
+@@ -5,6 +5,18 @@
+ import androidx.lifecycle.ViewModel
+ import com.example.weatherapp.adapters.WeatherModel
+ 
++
++// TODO это не так важно для Junior уровня, но лучше сразу делать качетственную системную организацию пакетов.
++/*
++* Представь что будет, если приложение разрастется. Ты получишь 2 пакета fragments и adapters с огромным количеством классов.
++* Суть пакетов тогда потеряется. Если упростить, то клссы должны лежать по СЕМАНТИЧЕСКОЙ близости, т.е. по смыслу, а не по схожести названий.
++* В случае твоего простого приложеня иерархия будет примерно такая:
++* weatherapp
++*     days
++*     hours
++*
++* внутри days будет к примеру DaysFragment и DaysAdapter
++* */
+ class MainViewModel : ViewModel() {
+ 
+     val liveDataCurrent = MutableLiveData<WeatherModel>()

@@ -7,18 +7,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
-import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.ListItemBinding
 import com.squareup.picasso.Picasso
 
-class WeatherDaysAdapter(val listener: Listener) : ListAdapter<WeatherModel, WeatherDaysAdapter.Holder>(
+class WeatherDaysAdapter(val listener: Listener) : ListAdapter<DayWeather, WeatherDaysAdapter.Holder>(
     Comparator()
 ) {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val binding = ListItemBinding.bind(view)
 
-        fun bind(item: WeatherModel, listener: Listener) = with(binding){
+        fun bind(item: DayWeather, listener: Listener) = with(binding){
             tvDate.text = item.time
             tvCondition.text = item.condition
             (item.maxTemp + "°C / " + item.minTemp + "°C").also { tvTemp.text = it }
@@ -30,13 +29,13 @@ class WeatherDaysAdapter(val listener: Listener) : ListAdapter<WeatherModel, Wea
         }
     }
 
-    class Comparator : DiffUtil.ItemCallback<WeatherModel>() {
-        override fun areItemsTheSame(oldItem: WeatherModel, newItem: WeatherModel): Boolean {
+    class Comparator : DiffUtil.ItemCallback<DayWeather>() {
+        override fun areItemsTheSame(oldItem: DayWeather, newItem: DayWeather): Boolean {
 //            надо сравнивать уникальные поля в элементах
             return oldItem == newItem
         }
 
-        override fun areContentsTheSame(oldItem: WeatherModel, newItem: WeatherModel): Boolean {
+        override fun areContentsTheSame(oldItem: DayWeather, newItem: DayWeather): Boolean {
             return oldItem == newItem
         }
     }
@@ -53,7 +52,7 @@ class WeatherDaysAdapter(val listener: Listener) : ListAdapter<WeatherModel, Wea
     }
 
     interface Listener {
-        fun onClick(dayWeather: WeatherModel)
+        fun onClick(dayWeather: DayWeather)
     }
 
 

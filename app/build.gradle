@@ -3,6 +3,10 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+def apikeyPropertiesFile = rootProject.file("apikey.properties")
+def apikeyProperties = new Properties()
+apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
+
 android {
     compileSdk 32
 
@@ -12,6 +16,7 @@ android {
         targetSdk 32
         versionCode 1
         versionName "1.0"
+        buildConfigField("String", "API_KEY", apikeyProperties['API_KEY'])
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

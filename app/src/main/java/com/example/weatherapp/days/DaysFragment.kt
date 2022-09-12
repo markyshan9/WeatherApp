@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weatherapp.MainViewModel
-import com.example.weatherapp.adapters.WeatherModel
 import com.example.weatherapp.databinding.FragmentDaysBinding
 
 class DaysFragment : Fragment(), WeatherDaysAdapter.Listener {
@@ -47,7 +46,7 @@ class DaysFragment : Fragment(), WeatherDaysAdapter.Listener {
         fun newInstance() = DaysFragment()
     }
 
-    override fun onClick(dayWeather: WeatherModel) {
+    override fun onClick(dayWeather: DayWeather) {
         Toast.makeText(context, dayWeather.time, Toast.LENGTH_SHORT).show()
         mainViewModel.parseHoursByDay(dayWeather)
     }

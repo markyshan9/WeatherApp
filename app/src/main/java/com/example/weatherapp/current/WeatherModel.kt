@@ -1,6 +1,6 @@
-package com.example.weatherapp.adapters
+package com.example.weatherapp.current
 
-data class DayWeather(
+data class WeatherModel(
     val cityName: String,
     val time: String,
     val condition: String,

@@ -8,27 +8,14 @@ import androidx.lifecycle.ViewModel
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.weatherapp.current.WeatherModel
 import com.example.weatherapp.days.DayWeather
 import com.example.weatherapp.hours.HourWeather
-import com.example.weatherapp.current.WeatherModel
 import org.json.JSONArray
 import org.json.JSONObject
 
 
-// TODO это не так важно для Junior уровня, но лучше сразу делать качетственную системную организацию пакетов.
-/*
-* Представь что будет, если приложение разрастется. Ты получишь 2 пакета fragments и adapters с огромным количеством классов.
-* Суть пакетов тогда потеряется. Если упростить, то клссы должны лежать по СЕМАНТИЧЕСКОЙ близости, т.е. по смыслу, а не по схожести названий.
-* В случае твоего простого приложеня иерархия будет примерно такая:
-* weatherapp
-*     days
-*     hours
-*
-* внутри days будет к примеру DaysFragment и DaysAdapter
-* */
-
 class MainViewModel : ViewModel() {
-
 
 
     private val _liveDataCurrent = MutableLiveData<WeatherModel>()
@@ -73,7 +60,7 @@ class MainViewModel : ViewModel() {
         val mainObject = JSONObject(result)
         val listDays: List<DayWeather> = parseDays(mainObject = mainObject)
         val currentWeather = parseCurrentData(mainObject = mainObject, weatherItem = listDays[0])
-        val listHours = parseHours(currentWeather.hours)
+        val listHours = parseHours(listDays[0].hours)
         if (_liveDataListDay.value == null || reset)
             _liveDataListDay.value = listDays.subList(1, listDays.size)
         if (_liveDataCurrent.value == null || reset)
@@ -119,8 +106,6 @@ class MainViewModel : ViewModel() {
                 minTemp = day.getJSONObject("day").getString("mintemp_c").toFloat().toInt()
                     .toString(),
                 hours = day.getJSONArray("hour").toString()
-
-
             )
             list.add(itemDay)
         }
@@ -165,9 +150,9 @@ class MainViewModel : ViewModel() {
             condition = dayWeather.condition,
             imageUrlCondition = dayWeather.imageUrlCondition,
             currentTemp = dayWeather.maxTemp + "/" + dayWeather.minTemp,
-            maxTemp = "",
-            minTemp = "",
-            hours = ""
+            maxTemp = dayWeather.maxTemp,
+            minTemp = dayWeather.maxTemp,
+            hours = dayWeather.hours
         )
         _liveDataCurrent.value = itemCurrent
 
